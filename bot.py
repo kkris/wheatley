@@ -7,12 +7,13 @@ from graph import State, Field, Board
 from strategies import *
 
 
-STRATEGY = 'moveaway'
+STRATEGY = 'drymax'
 
 strategies = {
     'noop': NoOpStrategy,
     'drycurrent': DryCurrentStrategy,
-    'moveaway': MoveAwayFromWaterStrategy
+    'moveaway': MoveAwayFromWaterStrategy,
+    'drymax': DryMaxStrategy
 }
 
 
@@ -80,9 +81,13 @@ class Bot(object):
 
             log('\nMaking moves:')
 
-            for action in self.strategy.play(self.board, self.position):
+            for (action, x, y) in self.strategy.play(self.board, self.position):
                 log(action)
                 self.send(action)
+
+                if action.startswith('DRY'):
+                    self.board.dry(x, y)
+
 
             self.log_board()
         elif line.startswith('FLOOD'):
