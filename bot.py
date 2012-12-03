@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import sys
-import time
 
 import colors
+from graph import State, Field, Board
 from strategies import *
 
 
@@ -28,61 +28,6 @@ def log(msg):
     with open('/tmp/kkrash.log', 'a') as fh:
         fh.write(msg + '\n')
 
-class Tile(object):
-    token = ''
-
-    @classmethod
-    def from_token(self, token):
-        if token == '#': return TileDry()
-        elif token == 'o': return TileFlooded()
-        else: return TileDrowned()
-
-    def __str__(self):
-        return color_funcs[self.token](self.token)
-
-    def __repr__(self):
-        return str(self)
-
-
-class TileDry(Tile):
-    token = '#'
-class TileFlooded(Tile):
-    token = 'o'
-class TileDrowned(Tile):
-    token = '.'
-
-
-class Gameboard(object):
-
-    def __init__(self, rows, colums):
-
-        self.board = [[None for i in range(colums)] for i in range(rows)]
-
-        self._counter = 0 # internal counter (what row will be set next)
-
-    def set_row_from_string(self, description):
-
-        for i, token in enumerate(description):
-            if token == '#':
-                self.board[self._counter][i] = TileDry()
-            elif token == 'o':
-                self.board[self._counter][i] = TileFlooded()
-            else:
-                self.board[self._counter][i] = TileDrowned()
-
-        self._counter += 1
-
-    def flood(self, x, y):
-        tile = self.board[x][y]
-        if isinstance(tile, TileDry):
-            self.board[x][y] = TileFlooded()
-        elif isinstance(tile, TileFlooded):
-            self.board[x][y] = TileDrowned()
-
-    def dry(self, x, y):
-
-        self.board[x][y] = TileDry()
-
 
 
 class Bot(object):
@@ -96,10 +41,12 @@ class Bot(object):
         self.position = (1, 1)
         self.current_round = 0
 
+        self.board_str = ''
+
     def log_board(self):
 
         s = ''
-        for i, row in enumerate(self.board.board):
+        '''for i, row in enumerate(self.board.board):
             for j, token in enumerate(row):
                 if (j, i) == self.position:
                     x, y = self.position
@@ -113,17 +60,14 @@ class Bot(object):
                     s += str(token) + ' '
             s += '\n'
         log('-'*20)
-        log(s + '-'*20)
+        log(s + '-'*20)'''
 
     def dispatch(self, line):
 
-        if line.startswith('GAMEBOARDSTART'):
-            cols, rows = map(int, line.split()[1].split(','))
-            self.board = Gameboard(rows, cols)
-        elif line[0] in ('#', 'o', '.'):
-            self.board.set_row_from_string(line)
+        if line[0] in ('#', 'o', '.'):
+            self.board_str += line + '\n'
         elif line.startswith('GAMEBOARDEND'):
-            pass
+            self.board = Board.from_string(self.board_str)
         elif line.startswith('ROUND'):
             self.log_board()
 
@@ -136,13 +80,13 @@ class Bot(object):
 
             log('\nMaking moves:')
 
-            for action in self.strategy.play(self.board.board, self.position):
+            for action in self.strategy.play(self.board, self.position):
                 log(action)
                 self.send(action)
 
             self.log_board()
         elif line.startswith('FLOOD'):
-            y, x = map(int, line.split()[1].split(','))
+            x, y = map(int, line.split()[1].split(','))
             self.board.flood(x-1, y-1)
             log('\nFlooding ({}, {})'.format(x-1, y-1))
 
