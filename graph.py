@@ -115,6 +115,9 @@ class Node(object):
     def __ne(self, other):
         return not self.__eq__(other)
 
+    def __repr__(self):
+        return 'Node({}, {})'.format(self.x, self.y)
+
     def _calculate_distance_to_water(self):
         """
         Recursivly calculate distance to water
