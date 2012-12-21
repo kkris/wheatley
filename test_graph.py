@@ -289,6 +289,43 @@ def test_middle_value():
     assert g.get_node(3, 2).middle_value == 5
     assert g.get_node(4, 2).middle_value == 4
 
+def test_island_value():
+
+    board = graph.Board.from_string(g1)
+    g = graph.Graph.from_board(board)
+
+    walkable = graph.make_walkable(g)
+    island = graph.split_into_subgraphs(walkable)[0]
+
+    value = island.calculate_island_value()
+    assert value == 15*2 + 3 + 7*4
+
+    
+    board = graph.Board.from_string(g2)
+    g = graph.Graph.from_board(board)
+
+    walkable = graph.make_walkable(g)
+    island = graph.split_into_subgraphs(walkable)[0]
+
+    value = island.calculate_island_value()
+    assert value == 14*2 + 2*3 + 10*4
+
+    
+    board = graph.Board.from_string(g_sub)
+    g = graph.Graph.from_board(board)
+
+    walkable = graph.make_walkable(g)
+    
+    island1, island2 = graph.split_into_subgraphs(walkable)
+
+
+    value = island1.calculate_island_value()
+    assert value in (1*3 + 2*4, 6*2 + 3*4)
+
+    value = island2.calculate_island_value()
+    assert value in (1*3 + 2*4, 6*2 + 3*4)
+
+
 def test_contains_subgraph():
 
     board = graph.Board.from_string(g_sub)

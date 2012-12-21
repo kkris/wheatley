@@ -246,6 +246,18 @@ class Graph(object):
         node = self.nodes[0]
         node._calculate_distance_to_land()
 
+
+    def calculate_island_value(self):
+
+        value = 0
+        for node in self.nodes:
+            if node.state == State.flooded: value += 2
+            elif node.state == State.redry: value += 3
+            elif node.state == State.dry: value += 4
+
+        return value
+
+    
     def get_middle(self):
         
         self.calculate_distance_to_water()
