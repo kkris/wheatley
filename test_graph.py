@@ -3,19 +3,19 @@ import graph
 g1 = '''
 oooooo
 o####o
-o####o
+o###~o
 ooooo.'''.strip()
 
 g2 = '''
 .oooo.
+o###~o
 o####o
-o####o
-o####o
+o#~##o
 .oooo.
 ......'''.strip()
 
 g_sub = '''
-##.o#
+#~.o#
 #.ooo
 .oo##
 '''.strip()
@@ -45,6 +45,21 @@ def test_graph_from_board():
             assert node.state == state
             assert node.x == x
             assert node.y == y
+
+
+def test_redry_node():
+
+    board = graph.Board.from_string(g1)
+
+    assert board[1][1].state == graph.State.dry
+
+    board.flood(1, 1)
+    assert board[1][1].state == graph.State.flooded
+
+    board.dry(1, 1)
+    assert board[1][1].state == graph.State.redry
+
+
 
 def test_connections():
     """
@@ -139,18 +154,12 @@ def test_make_dry():
             if node is None:
                 assert g2.split()[y][x] in (graph.State.flooded, graph.State.drowned)
             else:
-                assert node.state == graph.State.dry
+                assert node.state in (graph.State.dry, graph.State.redry)
 
     assert len(dry.nodes) == 3*4
 
     assert dry.get_node(1, 1).west is None
     
-
-'''
-##.o#
-#.ooo
-.oo##
-'''
 
 
 def test_subgraphs():

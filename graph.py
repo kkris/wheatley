@@ -11,6 +11,7 @@ class State(object):
     dry = '#'
     flooded = 'o'
     drowned = '.'
+    redry = '~'
 
 class Field(object):
 
@@ -44,7 +45,7 @@ class Board(list):
 
     def dry(self, x, y):
 
-        self[y][x].state = State.dry
+        self[y][x].state = State.redry
 
 
 class Node(object):
