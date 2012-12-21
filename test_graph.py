@@ -86,6 +86,45 @@ def test_connections():
                 assert node.north is g.get_node(x, y-1)
 
 
+
+
+def test_remove_and_add_node():
+
+    board = graph.Board.from_string(g1)
+    g = graph.Graph.from_board(board)
+
+    node = g.get_node(1, 1)
+
+    assert len(list(node.neighbors)) == 4
+    
+    assert g.get_node(2, 1).west is node
+    assert g.get_node(1, 2).north is node
+    assert g.get_node(0, 1).east is node
+    assert g.get_node(1, 0).south is node
+
+    g.remove_node(node)
+
+    assert g.get_node(1, 1) is None
+
+    assert g.get_node(2, 1).west is None
+    assert g.get_node(1, 2).north is None
+    assert g.get_node(0, 1).east is None
+    assert g.get_node(1, 0).south is None
+
+
+    g.add_node(node)
+
+    assert g.get_node(1, 1) is node
+
+    assert g.get_node(2, 1).west is node
+    assert g.get_node(1, 2).north is node
+    assert g.get_node(0, 1).east is node
+    assert g.get_node(1, 0).south is node
+
+
+
+
+
 def test_neighbors():
 
     board = graph.Board.from_string(g1)

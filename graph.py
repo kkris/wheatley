@@ -222,6 +222,16 @@ class Graph(object):
 
         return self._nodes[y][x]
 
+    def add_node(self, node):
+
+        self._nodes[node.y][node.x] = node
+        self._connect_nodes()
+
+    def remove_node(self, node):
+
+        self._nodes[node.y][node.x] = None
+        self._connect_nodes() # remove connections
+
     
     def calculate_distance_to_water(self):
         """
