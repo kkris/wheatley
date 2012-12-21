@@ -348,6 +348,34 @@ def test_contains_subgraph():
 
 
 
+def test_split_extended_islands():
+
+    board = graph.Board.from_string(g_sub)
+    g = graph.Graph.from_board(board)
+
+    walkable = graph.make_walkable(g)
+
+    extended_islands = graph.split_into_extended_islands(walkable)
+
+    assert len(extended_islands) == 3
+    for island in extended_islands:
+        if island.get_node(0, 0) is not None: 
+            assert len(island.nodes) == 3
+        elif island.get_node(4, 0) is not None: 
+            island2 = island
+            assert len(island.nodes) == 3
+        elif island.get_node(4, 2) is not None: 
+            island3 = island
+            assert len(island.nodes) == 7
+
+    
+    assert island2.get_node(4, 1) is not None
+    assert island3.get_node(4, 1) is not None
+
+    assert island2.get_node(3, 1) is None
+    assert island3.get_node(3, 1) is not None
+
+
 def test_get_middle():
 
     board = graph.Board.from_string(g1)
