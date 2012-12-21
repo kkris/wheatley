@@ -228,13 +228,50 @@ def test_distance_to_land():
     assert g.get_node(3, 0).distance_to_land == 1
 
 
+def test_middle_value():
+
+    board = graph.Board.from_string(g2)
+    g = graph.Graph.from_board(board)
+
+    g.calculate_distance_to_water()
+
+    # all water nodes have middle value 0
+    for node in g.nodes:
+        if node.is_water:
+            assert node.middle_value == 0
+
+    assert g.get_node(1, 1).middle_value == 2
+    assert g.get_node(2, 1).middle_value == 4
+    assert g.get_node(3, 1).middle_value == 4
+    assert g.get_node(4, 1).middle_value == 2
+
+    assert g.get_node(1, 2).middle_value == 4
+    assert g.get_node(2, 2).middle_value == 5
+    assert g.get_node(3, 2).middle_value == 5
+    assert g.get_node(4, 2).middle_value == 4
+
     dry = graph.make_dry(g)
     dry_islands = graph.split_into_subgraphs(dry)
 
     for island in dry_islands:
         island.calculate_distance_to_water()
+def test_get_middle():
 
-        assert island.get_node(1, 1).distance_to_water == 0
-        assert island.get_node(2, 2).distance_to_water == 1
+    board = graph.Board.from_string(g1)
+    g = graph.Graph.from_board(board)
+
+    middle = g.get_middle()
+
+    assert middle.x in (2, 3)
+    assert middle.y in (1, 2)
+
+
+    board = graph.Board.from_string(g2)
+    g = graph.Graph.from_board(board)
+
+    middle = g.get_middle()
+
+    assert middle.x in (2, 3)
+    assert middle.y == 2
 
 

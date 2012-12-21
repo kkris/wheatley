@@ -150,6 +150,14 @@ class Node(object):
 
 
 
+    @property
+    def middle_value(self):
+
+        if self.is_water:
+            return 0
+
+        return sum(map(operator.attrgetter('distance_to_water'), self.neighbors))
+
 
 class Graph(object):
 
@@ -216,6 +224,20 @@ class Graph(object):
     def calculate_distance_to_land(self):
         node = self.nodes[0]
         node._calculate_distance_to_land()
+
+    def get_middle(self):
+        
+        self.calculate_distance_to_water()
+
+        middle = self.nodes[0]
+        for node in self.nodes:
+            if node.middle_value > middle.middle_value:
+                middle = node
+
+        return middle
+
+
+
 
         
 def make_walkable(graph):
