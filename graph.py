@@ -180,6 +180,7 @@ class Graph(object):
                 nodes[-1].append(node)
         return Graph(nodes)
 
+
     def _connect_nodes(self):
 
         for y, line in enumerate(self._nodes):
@@ -310,6 +311,91 @@ def make_dry(graph):
                 nodes[-1].append(Node.from_node(node))
 
     return Graph(nodes)
+
+
+
+def mark_add(node, island, walkable_island, extended_islands):
+
+    print '\n\n#####'
+    print 'mark_add'
+    print '#####'
+
+    print 'Node({}, {}), value={}'.format(node.x, node.y, node.value)
+
+    if node.state in (State.dry, State.redry) or (
+        any(n.state in (State.dry, State.redry) and 
+            island.get_node(n.x, n.y) is not None for n in node.neighbors)
+    ):
+        print 'Selbst oder Nachbar von dry Knoten'
+        if node.value > 1:
+            print 'Remove Node ({}, {}) from other islands'.format(node.x, node.y)
+            for ext_island in extended_islands:
+                ext_island.remove_node(node)
+        node.value = 1
+        island.add_node(node)
+        for n in walkable_island.get_node(node.x, node.y).neighbors:
+            if n.state == State.flooded:
+                if n.value == -1 or n.value > node.value + 1:
+                    n.value = 2
+                    print 'Remove Node ({}, {}) from other islands'.format(n.x, n.y)
+                    for ext_island in extended_islands:
+                        ext_island.remove_node(n)
+
+                    mark_add(n, island, walkable_island, extended_islands)
+
+    else:
+        print 'Kontrolliere Nachbarknoten'
+        for n in walkable_island.get_node(node.x, node.y).neighbors:
+            if not n.state == State.flooded:
+                continue
+
+            if n.value == node.value + 1:
+                print 'Nachbar teilen'
+                island.add_node(n)
+
+            elif n.value == -1 or n.value > node.value + 1:
+                print 'Verbessere Wert von Node({}, {}) von {} auf {}'.format(n.x, n.y, n.value, node.value+1)
+                n.value = node.value + 1
+                print 'Remove Node({}, {}) from other islands'.format(n.x, n.y)
+                for ext_island in extended_islands:
+                    ext_island.remove_node(n)
+                island.add_node(n)
+                mark_add(n, island, walkable_island, extended_islands)
+    '''if node.state == State.dry:
+        flag = False
+        node.value = 1
+        for n in node.neighbors:
+            if n.state == State.flooded:
+                mark_add(n, island, islands)
+    else:
+        for n in node.neighbors:
+            if n.state == State.dry and island.get_node(n.x, n.y) is not None:
+                flag = False
+                node.value = 1
+                island.add_node(node)
+        for n in node.neighbors:
+            if n.state == State.flooded:
+                mark_add(n, island, islands)
+    '''
+
+
+
+def _split_into_extended_island(graph):
+
+    walkable = make_walkable(graph)
+    dry = make_dry(graph)
+    walkable_islands = split_into_subgraphs(walkable)
+    extended_islands = split_into_subgraphs(dry)
+
+    for island in extended_islands:
+        print "\nNeue Insel\n"
+        for node in island.nodes:
+            if node.state in (State.dry, State.redry):
+                for walkable_island in walkable_islands:
+                    if walkable_island.get_node(node.x, node.y) is not None: break
+                mark_add(node, island, walkable_island, extended_islands)
+
+    return extended_islands
 
 
 def split_into_extended_islands(graph):
