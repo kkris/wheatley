@@ -78,6 +78,10 @@ class Node(object):
     def is_water(self):
         return self.state in (State.flooded, State.drowned)
 
+    @property
+    def is_dry(self):
+        return self.state in (State.dry, State.redry)
+
 
     @property
     def is_next_to_water(self):
