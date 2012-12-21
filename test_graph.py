@@ -102,7 +102,9 @@ def test_is_water():
     g = graph.Graph.from_board(board)
 
     assert g.get_node(0, 0).is_water
+    assert g.get_node(1, 0).is_water
     assert not g.get_node(1, 1).is_water
+    assert not g.get_node(4, 1).is_water
 
 
 def test_next_to_water():
@@ -111,12 +113,17 @@ def test_next_to_water():
     g = graph.Graph.from_board(board)
 
     assert g.get_node(1, 1).is_next_to_water
+    assert g.get_node(4, 1).is_next_to_water
     assert not g.get_node(2, 2).is_next_to_water
 
-    dry = graph.split_into_subgraphs(graph.make_dry(g))[0]
+    # flooded or drowned nodes are by definition not next to water
+    assert not g.get_node(0, 0).is_next_to_water
+    assert not g.get_node(1, 0).is_next_to_water
+
+    dry = graph.split_into_subgraphs(graph.make_dry(g))[0] # get some None nodes in the graph
 
     assert dry.get_node(1, 1).is_next_to_water
-    assert not (dry.get_node(2, 2).is_next_to_water)
+    assert not dry.get_node(2, 2).is_next_to_water
 
 
 def test_make_walkable():
@@ -187,6 +194,39 @@ def test_distance_to_water():
 
     board = graph.Board.from_string(g2)
     g = graph.Graph.from_board(board)
+
+    g.calculate_distance_to_water()
+
+    # all water nodes must have distance 0
+    for node in g.nodes:
+        if node.is_water:
+            assert node.distance_to_water == 0
+
+    assert g.get_node(1, 1).distance_to_water == 1
+    assert g.get_node(2, 1).distance_to_water == 1
+    assert g.get_node(4, 1).distance_to_water == 1
+    assert g.get_node(2, 2).distance_to_water == 2
+    assert g.get_node(3, 2).distance_to_water == 2
+    assert g.get_node(2, 3).distance_to_water == 1
+
+
+def test_distance_to_land():
+
+    board = graph.Board.from_string(g2)
+    g = graph.Graph.from_board(board)
+
+    g.calculate_distance_to_land()
+
+    # all dry, redry nodes have distance 0
+    for node in g.nodes:
+        if node.is_dry:
+            assert node.distance_to_land == 0
+
+    assert g.get_node(0, 0).distance_to_land == 2
+    assert g.get_node(1, 0).distance_to_land == 1
+    assert g.get_node(2, 0).distance_to_land == 1
+    assert g.get_node(3, 0).distance_to_land == 1
+
 
     dry = graph.make_dry(g)
     dry_islands = graph.split_into_subgraphs(dry)

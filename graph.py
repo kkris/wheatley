@@ -55,6 +55,8 @@ class Node(object):
         self.y = y
         self.state = state
         self.distance_to_water = -1
+        self.distance_to_land = -1
+        self.value = -1
 
         self.north = self.east = self.south = self.west = None
 
@@ -86,11 +88,26 @@ class Node(object):
     @property
     def is_next_to_water(self):
 
+        if self.is_water: return False
+
         for neighbor in self.neighbors:
             if neighbor.state in (State.flooded, State.drowned):
                 return True
 
         return any(n is None for n in [self.north, self.east, self.south, self.west])
+
+    
+    # do not use, issa neda richtig implementiert
+    @property
+    def _is_next_to_land(self):
+
+        if self.is_dry: return False
+
+        for neighbor in self.neighbors:
+            if neighbor.state in (State.dry, State.redry):
+                return True
+
+        return False
 
     def __eq__(self, other):
         return self.state == other.state and self.x == other.x and self.y == other.y
@@ -103,14 +120,32 @@ class Node(object):
         Recursivly calculate distance to water
         """
 
-        if self.is_next_to_water:
+        if self.is_water:
             self.distance_to_water = 0
+        elif self.is_next_to_water:
+            self.distance_to_water = 1
 
         for neighbor in self.neighbors:
             if(neighbor.distance_to_water == -1 or
                neighbor.distance_to_water > self.distance_to_water + 1):
                 neighbor.distance_to_water = self.distance_to_water + 1
                 neighbor._calculate_distance_to_water()
+
+    def _calculate_distance_to_land(self):
+
+        if self.is_dry:
+            self.distance_to_land = 0
+        elif self._is_next_to_land:
+            self.distance_to_land = 1
+
+        for neighbor in self.neighbors:
+            if (neighbor.distance_to_land == -1 or
+                neighbor.distance_to_land > self.distance_to_land + 1):
+                neighbor.distance_to_land = self.distance_to_land + 1
+                neighbor._calculate_distance_to_land()
+
+
+
 
 
 class Graph(object):
@@ -174,6 +209,10 @@ class Graph(object):
         node = self.nodes[0]
         node._calculate_distance_to_water()
 
+
+    def calculate_distance_to_land(self):
+        node = self.nodes[0]
+        node._calculate_distance_to_land()
 
         
 def make_walkable(graph):
