@@ -250,11 +250,28 @@ def test_middle_value():
     assert g.get_node(3, 2).middle_value == 5
     assert g.get_node(4, 2).middle_value == 4
 
+def test_contains_subgraph():
+
+    board = graph.Board.from_string(g_sub)
+    g = graph.Graph.from_board(board)
+
+    walkable = graph.make_walkable(g)
     dry = graph.make_dry(g)
+
+    walkable_islands = graph.split_into_subgraphs(walkable)
     dry_islands = graph.split_into_subgraphs(dry)
 
-    for island in dry_islands:
-        island.calculate_distance_to_water()
+    for walkable_island in walkable_islands:
+        if walkable_island.get_node(4, 2) is not None: break
+
+    for dry_island in dry_islands:
+        if dry_island.get_node(4, 2) is not None: break
+
+    assert dry_island in walkable_island
+    assert walkable_island not in dry_island
+
+
+
 def test_get_middle():
 
     board = graph.Board.from_string(g1)
