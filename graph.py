@@ -284,7 +284,7 @@ def make_walkable(graph):
     for row in graph._nodes:
         nodes.append([])
         for node in row:
-            if node.state == State.drowned:
+            if node is None or node.state == State.drowned:
                 nodes[-1].append(None)
             else:
                 nodes[-1].append(Node.from_node(node))
