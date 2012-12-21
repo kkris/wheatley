@@ -1,3 +1,5 @@
+import operator
+
 def flatten(lst):
     for item in lst:
         if isinstance(item, list):
