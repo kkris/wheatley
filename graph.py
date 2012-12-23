@@ -181,6 +181,20 @@ class Graph(object):
         return Graph(nodes)
 
 
+    @staticmethod
+    def from_graph(graph):
+        nodes = []
+        for row in graph._nodes:
+            nodes.append([])
+            for field in row:
+                if field is None:
+                    nodes[-1].append(None)
+                else:
+                    node = Node(field.x, field.y, field.state)
+                    nodes[-1].append(node)
+        return Graph(nodes)
+
+
     def _connect_nodes(self):
 
         for y, line in enumerate(self._nodes):
