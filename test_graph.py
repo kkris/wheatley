@@ -21,6 +21,28 @@ g_sub = '''
 '''.strip()
 
 
+g_big = '''
+...ooooo.....oooooooo..........ooooo..
+..oo#ooooo...ooo###ooo...o.oooooooooo.
+oooo##oooo..oo######ooooooooo####ooooo
+.o######ooo.o#####ooooo..oo###oo##ooo.
+.oo######oo.oo###oooo...oo##oo.oo##o..
+ooo######o..o#######ooo.oo##oo..oo##oo
+.ooo##ooo..oo########oooooo##oooo##oo.
+.ooo####oo#####oooo#####oooo##oo##ooo.
+..oooo#######oooo.ooooooooooo###oooo..
+...ooooo####ooo...ooo....oooo##oooo...
+.....ooo###oo.....oooo..oooo##oo......
+....oo####oooooo...oooooooo##oooo.....
+..ooooo########ooooo.oooo###ooooooo...
+oooo######ooo####ooo.oo###oooooo......
+ooo########ooo#####oo####oooo.........
+.ooo########.#####oo#######oooo.......
+..oooo###############oooooooo.........
+....oooooo..oooooo..ooooo.............
+'''.strip()
+
+
 def test_flatten():
 
     assert list(graph.flatten([1, [2, 3], [4, [5,6]]])) == range(1, 7)
@@ -394,5 +416,35 @@ def test_get_middle():
 
     assert middle.x in (2, 3)
     assert middle.y == 2
+
+
+def test_reachable():
+
+    board = graph.Board.from_string(g_sub)
+    g = graph.Graph.from_board(board)
+
+    walkable = graph.make_walkable(g)
+
+    upper_left = walkable.get_node(0, 0)
+    upper_right = walkable.get_node(4, 0)
+    lower_right = walkable.get_node(4, 2)
+
+    assert not lower_right.reachable(upper_left)
+    assert upper_right.reachable(lower_right)
+
+
+
+def test_reachable_big():
+
+    board = graph.Board.from_string(g_big)
+    g = graph.Graph.from_board(board)
+
+    walkable = graph.make_walkable(g)
+
+    start = walkable.get_node(4, 1)
+    target = walkable.get_node(7, 14)
+
+    assert start.reachable(target)
+
 
 

@@ -56,6 +56,7 @@ class Node(object):
         self.x = x
         self.y = y
         self.state = state
+        self.distance = -1
         self.distance_to_water = -1
         self.distance_to_land = -1
         self.value = -1
@@ -159,6 +160,21 @@ class Node(object):
             return 0
 
         return sum(map(operator.attrgetter('distance_to_water'), self.neighbors))
+
+    
+    def mark_distance(self, distance):
+
+        self.distance = distance
+
+        for neighbor in self.neighbors:
+            if neighbor.distance == -1 or neighbor.distance > distance + 1:
+                neighbor.mark_distance(distance + 1)
+
+    def reachable(self, other):
+
+        self.mark_distance(0)
+
+        return other.distance != -1
 
 
 class Graph(object):
