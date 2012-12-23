@@ -448,3 +448,36 @@ def test_reachable_big():
 
 
 
+def test_get_next_node_on_path_to():
+
+    board = graph.Board.from_string(g_sub)
+    g = graph.Graph.from_board(board)
+
+    walkable = graph.make_walkable(g)
+
+    island1, island2 = sorted(graph.split_into_subgraphs(walkable), key=lambda i: len(i.nodes))
+
+    start = island1.get_node(0, 0)
+    target = island2.get_node(4, 2)
+
+    assert start.get_next_node_on_path_to(target) is None
+
+    start = island2.get_node(4, 0)
+
+    assert start.get_next_node_on_path_to(target) is island2.get_node(4, 1)
+
+
+def test_get_next_node_on_path_to_big():
+
+    board = graph.Board.from_string(g_big)
+    g = graph.Graph.from_board(board)
+
+    walkable = graph.make_walkable(g)
+
+    start = walkable.get_node(4, 1)
+    target = walkable.get_node(7, 14)
+
+    assert start.get_next_node_on_path_to(target) is walkable.get_node(5, 1)
+
+
+

@@ -177,6 +177,15 @@ class Node(object):
         return other.distance != -1
 
 
+    def get_next_node_on_path_to(self, target):
+
+        if not target.reachable(self): return None
+
+        return sorted(self.neighbors, key=lambda n: n.distance)[0]
+
+
+
+
 class Graph(object):
 
     def __init__(self, nodes=None):
