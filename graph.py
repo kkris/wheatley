@@ -357,14 +357,12 @@ def split_into_extended_islands(graph):
 
     for island in walkable_islands_only_one_dry:
         island.calculate_distance_to_land()
-        print island.nodes
     
     for island in walkable_islands_only_one_dry:
         for other_island in filter(lambda i: i is not island, walkable_islands_only_one_dry):
             for node in island.nodes:
                 other_node = other_island.get_node(node.x, node.y)
                 if other_node is not None:
-                    print node, node.distance_to_land, other_node.distance_to_land
                     if node.distance_to_land > other_node.distance_to_land:
                         island.remove_node(node)
 
