@@ -7,13 +7,14 @@ from graph import State, Field, Board
 from strategies import *
 
 
-STRATEGY = 'drymax'
+STRATEGY = 'hyper'
 
 strategies = {
     'noop': NoOpStrategy,
     'drycurrent': DryCurrentStrategy,
     'moveaway': MoveAwayFromWaterStrategy,
-    'drymax': DryMaxStrategy
+    'drymax': DryMaxStrategy,
+    'hyper': HyperStrategy
 }
 
 
