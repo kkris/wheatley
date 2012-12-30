@@ -353,46 +353,73 @@ def make_dry(graph):
 
 
 
+def algorithm(node, island, islands):
+    
+    dry_states = (State.dry, State.redry)
+
+    if (node.state in dry_states or 
+        any(n.state in dry_states and n in island for n in node.neighbors)):
+
+        if node.distance_to_land > 1:
+            for ext_island in islands:
+                if node in ext_island:
+                    ext_island.remove(node)
+        
+        island.add(node)
+
+        node.distance_to_land = 1
+
+    for neighbor in node.neighbors:
+        if neighbor.state == State.flooded:
+            if node.state in dry_states:
+                algorithm(neighbor, island, islands)
+            elif neighbor.distance_to_land == node.distance_to_land + 1:
+                if neighbor not in island:
+                    island.add(neighbor)
+            elif (neighbor.distance_to_land == -1 or 
+                  neighbor.distance_to_land > node.distance_to_land + 1):
+                neighbor.distance_to_land = node.distance_to_land + 1
+
+                for ext_island in islands:
+                    if neighbor in ext_island:
+                        ext_island.remove(neighbor)
+                island.add(neighbor)
+                algorithm(neighbor, island, islands)
+
+
+
 def split_into_extended_islands(graph):
-    """
-    Takes the full graph (with no nodes removed (made walkable or dry)) and
-    splits it into dry islands and adds surrounding flooded nodes to one or more
-    neighbor islands depending on the distance.
-    """
 
     walkable = make_walkable(graph)
     dry = make_dry(graph)
-
-    walkable_islands = split_into_subgraphs(walkable)
     dry_islands = split_into_subgraphs(dry)
 
-    walkable_islands_only_one_dry = []
-    for walkable_island in walkable_islands:
-        for dry_island in dry_islands:
-            # test if dry_island is member of the current walkable island
-            if not dry_island in walkable_island: continue
+    extended_islands = []
+    for dry_island in dry_islands:
+        extended_island = set()
+        for node in dry_island.nodes:
+            walkable_node = walkable.get_node(node.x, node.y)
 
-            walkable_island_copy = Graph.from_graph(walkable_island)
-            for other_island in filter(lambda i: i is not dry_island, dry_islands):
-                for node in other_island.nodes:
-                    walkable_island_copy.remove_node(node)
-            if len(filter(None, walkable_island_copy.nodes)) > 0:
-                walkable_islands_only_one_dry.append(walkable_island_copy)
+            extended_island.add(walkable_node)
+
+        extended_islands.append(extended_island)
 
 
-    for island in walkable_islands_only_one_dry:
-        island.calculate_distance_to_land()
-    
-    for island in walkable_islands_only_one_dry:
-        for other_island in filter(lambda i: i is not island, walkable_islands_only_one_dry):
-            for node in island.nodes:
-                other_node = other_island.get_node(node.x, node.y)
-                if other_node is not None:
-                    if node.distance_to_land > other_node.distance_to_land:
-                        island.remove_node(node)
+    for extended_island in extended_islands:
+        for node in list(extended_island):
+            algorithm(node, extended_island, extended_islands)
 
-    return walkable_islands_only_one_dry
-    
+
+    islands = []
+    for ext_island in extended_islands:
+        nodes = [[None for _ in range(graph.columns)] for _ in range(graph.rows)]
+        for node in ext_island:
+            nodes[node.y][node.x] = node
+
+        islands.append(Graph(nodes))
+
+    return islands
+
 
 
 def _find_connected(node, visited):

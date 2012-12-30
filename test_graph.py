@@ -43,6 +43,29 @@ ooo########ooo#####oo####oooo.........
 '''.strip()
 
 
+
+g_big_cluttered = '''
+...~~~~~......oooo.oo..........ooo.o..
+...~#~~~~~...ooo..#ooo...o.oooo.ooooo.
+o.~~##~~~~..oo#.##o#o.oo.o.oo###.oooo.
+.o.##~oo~~~.o.#..#o..o...oo#.ooo#...o.
+.o.###~#~~~..o#..o.oo...oo#.oo.oo.#o..
+.oo#o##o~~...#.###.#.oo.oo#o....oo#ooo
+..oo.#~~~..oo.o##.##.oooo.o..o.oo##oo.
+.ooo#.##~~#####ooo..o##oooo.##oo#oooo.
+..ooo...###.#oo.o.o.ooooooo.o.##oo....
+...o.ooo####oo....o.o....oo.oo#.ooo...
+.....o..o#..o.....oooo..oo.o##oo......
+.....o###..ooooo...oooo.o.o#.ooo......
+..oooo..###.##.o.ooo.oo.oo##.oooooo...
+o.o..#####.oo####ooo..o#.#oo..oo......
+ooo###.####o.o#o..#oo..##.oo..........
+.....#######.#.###oo###.#.#o.oo.......
+..oooo.########o###o#oooooo...........
+....oo.oo...o.o.oo..ooooo.............
+'''.strip()
+
+
 def test_flatten():
 
     assert list(graph.flatten([1, [2, 3], [4, [5,6]]])) == range(1, 7)
@@ -396,6 +419,52 @@ def test_split_extended_islands():
 
     assert island2.get_node(3, 1) is None
     assert island3.get_node(3, 1) is not None
+
+
+def test_split_extended_islands_big():
+
+    board = graph.Board.from_string(g_big_cluttered)
+    g = graph.Graph.from_board(board)
+
+    walkable = graph.make_walkable(g)
+
+    extended_islands = graph.split_into_extended_islands(walkable)
+
+    assert len(extended_islands) == len(graph.split_into_subgraphs(graph.make_dry(g)))
+
+    for island in extended_islands:
+        if island.get_node(18, 6) is not None:
+            assert len(island.nodes) == 5
+            assert island.get_node(19, 6) is not None
+            assert island.get_node(19, 5) is not None
+            assert island.get_node(19, 4) is not None
+            assert island.get_node(20, 4) is not None
+
+        if island.get_node(5, 9) is not None:
+            node = island.get_node(5, 9)
+            assert node.distance_to_land == 3
+
+        if island.get_node(8, 9) is not None:
+            assert island.get_node(5, 9) is not None
+        if island.get_node(5, 13) is not None:
+            assert island.get_node(5, 9) is not None
+
+        if island.get_node(17, 2) is not None:
+            assert island.get_node(18, 2) is not None
+        if island.get_node(18, 1) is not None:
+            assert island.get_node(18, 2) is not None
+        if island.get_node(19, 2) is not None:
+            assert island.get_node(18, 2) is not None
+
+
+        if island.get_node(30, 3)  is not None:
+            assert island.get_node(4, 1) is None
+        if island.get_node(4, 1) is not None:
+            assert island.get_node(30, 3) is None
+
+        assert island.get_node(31, 0) is None
+
+
 
 
 def test_get_middle():
