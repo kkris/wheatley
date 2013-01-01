@@ -1,5 +1,6 @@
 import operator
 
+
 def flatten(lst):
     for item in lst:
         if isinstance(item, list):
@@ -188,10 +189,11 @@ class Node(object):
 
 class Graph(object):
 
-    def __init__(self, nodes=None):
+    def __init__(self, nodes):
 
-        if nodes is None: self._nodes = []
-        else: self._nodes = nodes
+        self._nodes = nodes
+        self.rows = len(nodes)
+        self.columns = len(nodes[0])
 
         self._connect_nodes()
 
@@ -245,13 +247,7 @@ class Graph(object):
 
         return True
 
-    @property
-    def rows(self):
-        return len(self._nodes)
 
-    @property
-    def colums(self):
-        return len(self._nodes[0])
 
     @property
     def nodes(self):
