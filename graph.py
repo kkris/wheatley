@@ -229,7 +229,7 @@ class Graph(object):
                 if node is None: continue
                 if x > 0:
                     node.west = line[x-1]
-                if x < self.colums - 1:
+                if x < self.columns - 1:
                     node.east = line[x+1]
                 if y > 0:
                     node.north = self._nodes[y-1][x]
@@ -439,7 +439,7 @@ def split_into_subgraphs(graph):
             nodes.remove(node)
 
         # build 2-dimensional list from visited nodes
-        n = [[None for i in range(graph.colums)] for j in range(graph.rows)]
+        n = [[None for i in range(graph.columns)] for j in range(graph.rows)]
         for node in visited:
             n[node.y][node.x] = node
 

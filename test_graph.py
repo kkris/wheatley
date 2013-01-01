@@ -82,7 +82,7 @@ def test_graph_from_board():
     g = graph.Graph.from_board(board)
 
     assert g.rows == 4
-    assert g.colums == 6
+    assert g.columns == 6
 
     for y, line in enumerate(g1.split()):
         for x, state in enumerate(line):
@@ -120,7 +120,7 @@ def test_connections():
             if x == 0: 
                 assert node.west is None
                 assert node.east is g.get_node(x+1, y)
-            if x == g.colums - 1: 
+            if x == g.columns - 1: 
                 assert node.east is None
                 assert node.west is g.get_node(x-1, y)
             if y == 0: 
@@ -218,7 +218,7 @@ def test_make_walkable():
     walkable = graph.make_walkable(g)
 
     for y in range(walkable.rows):
-        for x in range(walkable.colums):
+        for x in range(walkable.columns):
             node = walkable.get_node(x, y)
             if node is None:
                 assert g2.split()[y][x] == graph.State.drowned
@@ -239,7 +239,7 @@ def test_make_dry():
     walkable = graph.make_walkable(g)
     dry2 = graph.make_dry(walkable)
     for y in range(dry.rows):
-        for x in range(dry.colums):
+        for x in range(dry.columns):
             node = dry.get_node(x, y)
             assert node == dry2.get_node(x, y)
             if node is None:
