@@ -41,7 +41,7 @@ class Board(list):
     def flood(self, x, y):
 
         field = self[y][x]
-        if field.state == State.dry:
+        if field.state in (State.dry, State.redry):
             field.state = State.flooded
         elif field.state == State.flooded:
             field.state = State.drowned
