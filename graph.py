@@ -59,6 +59,7 @@ class Node(object):
         self.state = state
         self.distance = -1
         self.distance_to_water = -1
+        self.distance_to_flooded = -1
         self.distance_to_land = -1
         self.value = -1
 
@@ -137,6 +138,25 @@ class Node(object):
                neighbor.distance_to_water > self.distance_to_water + 1):
                 neighbor.distance_to_water = self.distance_to_water + 1
                 neighbor._calculate_distance_to_water()
+
+
+    def _calculate_distance_to_flooded(self):
+        """
+        Only correct behaviour on walkable
+        """
+
+        if self.state == State.flooded:
+            self.distance_to_flooded = 0
+        elif any(n.state == State.flooded for n in self.neighbors):
+            self.distance_to_flooded = 0
+
+        for neighbor in self.neighbors:
+            if self.distance_to_flooded == -1: continue
+
+            if(neighbor.distance_to_flooded == -1 or 
+               neighbor.distance_to_flooded > self.distance_to_flooded + 1):
+                neighbor.distance_to_flooded = self.distance_to_flooded + 1
+                neighbor._calculate_distance_to_flooded()
 
     def _calculate_distance_to_land(self):
 
@@ -279,6 +299,12 @@ class Graph(object):
         node = self.nodes[0]
         node._calculate_distance_to_water()
 
+    
+    def calculate_distance_to_flooded(self):
+
+        for node in self.nodes:
+            if node.distance_to_flooded == -1:
+                node._calculate_distance_to_flooded()
 
     def calculate_distance_to_land(self):
         node = self.nodes[0]

@@ -294,6 +294,41 @@ def test_distance_to_water():
     assert g.get_node(2, 3).distance_to_water == 1
 
 
+
+def test_distance_to_flooded():
+
+    board = graph.Board.from_string(g2)
+    g = graph.make_walkable(graph.Graph.from_board(board))
+
+
+    g.calculate_distance_to_flooded()
+
+    for node in g.nodes:
+        if node.state == graph.State.flooded:
+            assert node.distance_to_flooded == 0
+        elif any(n.state == graph.State.flooded for n in node.neighbors):
+            assert node.distance_to_flooded == 0
+
+    assert g.get_node(2, 2).distance_to_flooded == 1
+
+    
+
+
+    board = graph.Board.from_string(g_sub)
+    g = graph.make_walkable(graph.Graph.from_board(board))
+
+    g.calculate_distance_to_flooded()
+
+    for node in g.nodes:
+        if node.state == graph.State.flooded:
+            assert node.distance_to_flooded == 0
+        elif any(n.state == graph.State.flooded for n in node.neighbors):
+            assert node.distance_to_flooded == 0
+
+    assert g.get_node(1, 0).distance_to_flooded == -1
+
+
+
 def test_distance_to_land():
 
     board = graph.Board.from_string(g2)
