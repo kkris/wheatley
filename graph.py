@@ -234,6 +234,9 @@ class Graph(object):
         self.rows = len(nodes)
         self.columns = len(nodes[0])
 
+        self._cached_paths = defaultdict(lambda: defaultdict(dict))
+        self._cached_distances = defaultdict(lambda: defaultdict(int))
+
         self._connect_nodes()
 
         self._update_non_null_nodes()
@@ -440,6 +443,123 @@ class Graph(object):
 
         return middle
 
+
+    def _add_path_to_cache(self, path, start, target):
+        """
+        Cache this path and split it into subpaths and cache them too
+        """
+
+        distance = 0
+        reverse_path = {target: target}
+
+        current = target
+        while current != start:
+            self._cached_distances[current][target] = distance
+            self._cached_distances[target][current] = distance
+
+            self._cached_paths[current][target] = reverse_path.copy()
+
+            next_node = path[current]
+            reverse_path[next_node] = current
+
+            distance += 1
+
+            current = next_node
+
+        self._cached_paths[current][target] = reverse_path.copy()
+        self._cached_distances[current][target] = distance
+        self._cached_distances[target][current] = distance
+
+
+    def _get_path_between(self, start, target):
+        """
+        Get the shortest path between start and target using A*
+        """
+
+        if start in self._cached_paths and target in self._cached_paths[start]:
+            return self._cached_paths[start][target]
+
+        def min_distance(n1, n2):
+            return abs(n1.x - n2.x) + abs(n1.y - n2.y)
+
+        closedset = set()
+        openset = set([start])
+        path = {}
+
+        g_score = {start: 0}
+        f_score = {start: min_distance(start, target)}
+
+        while openset:
+
+            # find minimum
+            current = None
+            for node in openset:
+                if current is None:
+                    current = node
+                elif f_score[node] < f_score[current]:
+                    current = node
+
+            if current.x == target.x and current.y == target.y:
+                self._add_path_to_cache(path, start, target)
+                return self._cached_paths[start][target]
+
+            openset.remove(current)
+            closedset.add(current)
+
+            for neighbor in current.neighbors:
+                if neighbor in closedset:
+                    continue
+
+                tentative_g_score = g_score[current] + 1
+
+                if neighbor not in openset or tentative_g_score <= g_score[neighbor]:
+                    path[neighbor] = current
+                    g_score[neighbor] = tentative_g_score
+                    f_score[neighbor] = g_score[neighbor] + min_distance(neighbor, target)
+                    if neighbor not in openset:
+                        openset.add(neighbor)
+
+        self._cached_paths[start][target] = None
+        self._cached_paths[target][start] = None
+        self._cached_distances[start][target] = -1
+        self._cached_distances[target][start] = -1
+
+        return None
+
+
+    def get_distance_between(self, start, target):
+        """
+        Get the shortest distance between start and target
+        """
+
+        if start in self._cached_distances and target in self._cached_distances[start]:
+            return self._cached_distances[start][target]
+
+        path = self._get_path_between(start, target)
+        if path is None:
+            return -1
+        else:
+            return self._cached_distances[start][target]
+
+    def is_reachable(self, start, target):
+        """
+        Return whether target is reachable from start or not
+        """
+
+        return self.get_distance_between(start, target) != -1
+
+
+    def get_next_node_on_path_to(self, start, target):
+        """
+        Return the next node on the way from start to target
+        If it is not possible return None
+        """
+
+        path = self._get_path_between(start, target)
+        if path is None:
+            return None
+        else:
+            return path[start]
 
 
 
