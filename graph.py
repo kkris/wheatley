@@ -57,8 +57,9 @@ class Node(object):
 
         self.x = x
         self.y = y
-        self.state = state
-        self.distance = -1
+
+        self._state = state
+
         self.distance_to_water = -1
         self.distance_to_flooded = -1
         self.distance_to_land = -1
@@ -67,10 +68,13 @@ class Node(object):
         self.north = self.east = self.south = self.west = None
 
 
-    @staticmethod
-    def from_node(node):
+        self._is_water = False
+        self._is_dry = False
+        self._is_next_to_water = False
+        self._is_next_to_land = False
 
-        return Node(node.x, node.y, node.state)
+        self.should_recalculate_node_properties = True
+        self.should_update_neighbors = True
 
 
     @property
@@ -84,23 +88,34 @@ class Node(object):
 
     @property
     def is_water(self):
-        return self.state in (State.flooded, State.drowned)
+        if self.should_recalculate_node_properties:
+            self.calculate_node_properties()
+        return self._is_water
 
     @property
     def is_dry(self):
-        return self.state in (State.dry, State.redry)
-
+        return not self.is_water
 
     @property
     def is_next_to_water(self):
+        if self.should_recalculate_node_properties:
+            self.calculate_node_properties()
+        return self._is_next_to_water
 
-        if self.is_water: return False
+    @property
+    def is_next_to_land(self):
+        if self.should_recalculate_node_properties:
+            self.calculate_node_properties()
+        return self._is_next_to_land
 
-        for neighbor in self.neighbors:
-            if neighbor.state in (State.flooded, State.drowned):
-                return True
+    @property
+    def state(self):
+        return self._state
 
-        return any(n is None for n in [self.north, self.east, self.south, self.west])
+    @state.setter
+    def state(self, state):
+        self._state = state
+        self.should_recalculate_node_properties = True
 
     
     # do not use, issa neda richtig implementiert
@@ -140,59 +155,46 @@ class Node(object):
                 neighbor.distance_to_water = self.distance_to_water + 1
                 neighbor._calculate_distance_to_water()
 
+    def calculate_node_properties(self):
 
-    def _calculate_distance_to_flooded(self):
-        """
-        Only correct behaviour on walkable
-        """
+        self._is_water = self._get_is_water()
+        self._is_dry = not self._is_water
 
-        if self.state == State.flooded:
-            self.distance_to_flooded = 0
-        elif any(n.state == State.flooded for n in self.neighbors):
-            self.distance_to_flooded = 0
+        self._is_next_to_water = self._get_is_next_to_water()
+        self._is_next_to_land = self._get_is_next_to_land()
 
-        for neighbor in self.neighbors:
-            if self.distance_to_flooded == -1: continue
+        self.should_recalculate_node_properties = False
 
             if(neighbor.distance_to_flooded == -1 or 
                neighbor.distance_to_flooded > self.distance_to_flooded + 1):
                 neighbor.distance_to_flooded = self.distance_to_flooded + 1
                 neighbor._calculate_distance_to_flooded()
 
-    def _calculate_distance_to_land(self):
+    def _get_is_water(self):
+        return self._state in (State.flooded, State.drowned)
 
-        if self.is_dry:
-            self.distance_to_land = 0
-        elif self._is_next_to_land:
-            self.distance_to_land = 1
+    def _get_is_next_to_water(self):
 
-        for neighbor in self.neighbors:
-            if (neighbor.distance_to_land == -1 or
-                neighbor.distance_to_land > self.distance_to_land + 1):
-                neighbor.distance_to_land = self.distance_to_land + 1
-                neighbor._calculate_distance_to_land()
-
-
-
-
-    @property
-    def middle_value(self):
-
-        if self.is_water:
-            return 0
-
-        return sum(map(operator.attrgetter('distance_to_water'), self.neighbors))
-
-    
-    def mark_distance(self, distance):
-
-        self.distance = distance
+        if self._is_water:
+            return False
 
         for neighbor in self.neighbors:
-            if neighbor.distance == -1 or neighbor.distance > distance + 1:
-                neighbor.mark_distance(distance + 1)
+            if neighbor.state in (State.flooded, State.drowned):
+                return True
 
-    def reachable(self, other):
+        return any(n is None for n in [self.north, self.east, self.south, self.west])
+
+
+    def _get_is_next_to_land(self):
+
+        if self._is_dry:
+            return False
+
+        for neighbor in self.neighbors:
+            if neighbor.state in (State.dry, State.redry):
+                return True
+
+        return False
 
         self.mark_distance(0)
 
