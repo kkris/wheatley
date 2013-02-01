@@ -66,10 +66,6 @@ ooo###.####o.o#o..#oo..##.oo..........
 '''.strip()
 
 
-def test_flatten():
-
-    assert list(graph.flatten([1, [2, 3], [4, [5,6]]])) == range(1, 7)
-
 
 def test_graph_from_board():
     """
