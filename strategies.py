@@ -57,7 +57,7 @@ class Strategy(object):
 
         return actions
 
-    def play(self, board, position):
+    def get_actions(self, graph, position):
         raise NotImplementedError()
 
 
@@ -179,7 +179,7 @@ class DryMaxStrategy(Strategy):
                 self.do('DRY', direction, neighbor.x, neighbor.y)
 
 
-    def play(self, board, position):
+    def get_actions(self, graph, position):
 
         graph = Graph.from_board(board)
 
