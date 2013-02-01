@@ -236,116 +236,133 @@ class MovingStrategy(Strategy):
         return self.commit()
 
 
-    def evaluate_mode(self, board, position):
-
-        graph = Graph.from_board(board)
-
-        extended_islands = split_into_extended_islands(graph)
-        
-        target_island = None
-        for island in extended_islands:
-            if target_island is None: target_island = island
-            elif island.calculate_island_value() > target_island.calculate_island_value():
-                target_island = island
-
-        if target_island.get_node(*position) is not None:
-            return 'FARMING'
+class FarmingStrategy(Strategy):
+    """
+    This Strategy aims to dry as many fields as possible.
+    """
 
 
-        return 'MOVING'
+    def get_nearest_node(self, walkable, island, current_node):
+        """
+        Returns the node of the island that is nearest to our current position
+        """
 
+        x, y = current_node.x, current_node.y
 
-    def can_dry_neighbor(self, graph, position):
+        nearest_node = (None, -1)
 
-        current_node = graph.get_node(*position)
+        for node in island.nodes:
+            if abs(node.x - x) + abs(node.y - y) > 10:
+                continue
 
-        if current_node.state == State.flooded: return True
-        for neighbor in current_node.neighbors:
-            if neighbor.state == State.flooded: return True
-        return False
+            node = walkable.get_node(node.x, node.y)
 
-    
-    def dry_one_if_possible(self, graph, position):
-
-        current_node = graph.get_node(*position)
-
-        if current_node.state == State.flooded:
-            self.do('DRY', 'CURRENT', current_node.x, current_node.y)
-            current_node.state = State.redry
-            return True
-
-        for node in current_node.neighbors:
-            if node.state == State.flooded:
-                direction = get_direction(current_node, node)
-                self.do('DRY', direction, node.x, node.y)
-                node.state = State.redry
-                return True
-
-        return False
-
-    def go(self, start, target):
-
-        next_node = start.get_next_node_on_path_to(target)
-
-        if next_node is None: return None
-
-        direction = get_direction(start, next_node)
-        self.do('GO', direction)
-
-        return next_node
-
-    def find_target(self, graph, position):
-
-        current_node = graph.get_node(*position)
-        copy = Graph.from_graph(graph)
-        islands = split_into_extended_islands(copy) # nebenwirkung, sollte input graph intakt lassen
-
-        target_island = None
-        for island in islands:
-            if island.get_node(current_node.x, current_node.y) is None: continue # not reachable
-
-            if target_island is None: 
-                target_island = island
+            if nearest_node[0] is None:
+                distance = walkable.get_distance_between(current_node, node)
+                nearest_node = (node, distance)
             else:
-                if island.calculate_island_value() > target_island.calculate_island_value():
-                    target_island = island
+                distance = walkable.get_distance_between(current_node, node)
+                if distance < nearest_node[1]:
+                    nearest_node = (node, distance)
 
-        target = target_island.get_middle()
+        return nearest_node
 
-        return graph.get_node(target.x, target.y)
 
-        
+    def calculate_distance_value(self, walkable, island, current_node):
+        """
+        Calculates a value of an island consisting of the normal island value
+        minus the distance times 4. This way islands which are near by get a
+        better overall value
+        """
 
-    def play(self, board, position):
+        nearest_node, distance = self.get_nearest_node(walkable, island, current_node)
 
-        mode = self.evaluate_mode(board, position)
+        self.nearest_nodes[island] = nearest_node
 
-        graph = make_walkable(Graph.from_board(board))
+        if nearest_node is None:
+            distance = 1000
 
-        if mode == 'MOVING':
-            while len(self.actions) < 2:
-                if not self.dry_one_if_possible(graph, position):
-                    current_node = graph.get_node(*position)
-                    target = self.find_target(graph, position)
-                    next_node = self.go(current_node, target)
-                    if next_node is not None:
-                        position = (next_node.x, next_node.y)
+        return island.calculate_island_value() - (distance*4)
 
-            
 
-            current_node = graph.get_node(*position)
-            target = self.find_target(graph, position)
+    def get_best_island(self, walkable, current_node):
+        """
+        Returns a flooded island (which is not really an island) which has the
+        most fields that can be dried, but is not too far away.
+        """
 
-            next_node = self.go(current_node, target)
-            
-            return self.commit()
+        best_island = (None, -1)
+        for island in self.flooded_islands:
+            node = walkable.get_node(island.nodes[0].x, island.nodes[0].y)
+            if not walkable.is_reachable(current_node, node):
+                continue
 
-        elif mode == 'FARMING':
-            for i in range(3):
-                self.dry_one_if_possible(graph, position)
+            if best_island[0] is None:
+                value = self.calculate_distance_value(walkable, island, current_node)
+                best_island = (island, value)
+            else:
+                value = self.calculate_distance_value(walkable, island, current_node)
+                if value > best_island[1]:
+                    best_island = (island, value)
+
+        return best_island[0]
+
+
+    def go_towards_best_flooded(self, walkable):
+        """
+        Goes one field in the direction where a maximum number of fields can be dried
+        but it does not take too far away fields into account.
+        """
+
+        self.nearest_nodes = {}
+
+        current_node = walkable.get_node(*self.position)
+
+        best_island = self.get_best_island(walkable, current_node)
+        if best_island is None:
+            return False
+
+        nearest_node = self.nearest_nodes[best_island]
+
+        if nearest_node is None:
+            return False
+
+        target = walkable.get_node(nearest_node.x, nearest_node.y)
+
+        next_node = walkable.get_next_node_on_path_to(current_node, target)
+        if next_node is None:
+            return False
+
+
+        return True
+
+
+    def get_actions(self, graph, position):
+
+        self.flooded_islands = None
+        self.position = position
+
+        while len(self.actions) < 3:
+            dried = False
+            while len(self.actions) < 3 and self.dry_one_if_possible(graph):
+                dried = True
+
+            if dried or self.flooded_islands is None:
+                self.flooded_islands = split_into_subgraphs(make_flooded(graph))
 
             if len(self.actions) == 3:
                 return self.commit()
 
-            
+            did_succeed = self.go_towards_best_flooded(graph)
 
+            if not did_succeed:
+
+                current_node = graph.get_node(*self.position)
+                if current_node.distance_to_flooded == -1:
+                    target = self.find_target(graph)
+                    self.go(graph, current_node, target)
+                else:
+                    target = min(current_node.neighbors, key=lambda n: n.distance_to_flooded)
+                    self.go(graph, current_node, target)
+
+        return self.commit()
