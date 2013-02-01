@@ -63,7 +63,6 @@ class Node(object):
         self.distance_to_water = -1
         self.distance_to_flooded = -1
         self.distance_to_land = -1
-        self.value = -1
 
         self._north = self._east = self._south = self._west = None
         self._neighbors = []
