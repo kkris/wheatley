@@ -1,5 +1,10 @@
-import operator
+"""
+graph
+~~~~~
 
+:copyright: (c) 2013 by Matthias Hummel and Kristoffer Kleine.
+:license: BSD, see LICENSE for more details.
+"""
 
 from collections import defaultdict
 

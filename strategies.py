@@ -1,5 +1,13 @@
-from graph import (Graph, State, make_walkable, make_dry, split_into_subgraphs, 
-                   split_into_extended_islands)
+"""
+strategies
+~~~~~~~~~~
+
+Various strategies.
+
+:copyright: (c) 2013 by Matthias Hummel and Kristoffer Kleine.
+:license: BSD, see LICENSE for more details.
+"""
+
 
 class Strategy(object):
 
