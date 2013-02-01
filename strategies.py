@@ -68,16 +68,29 @@ class Strategy(object):
 
     def dry_one_if_possible(self, graph):
 
+        def _set_dry_state(node):
+            graph.get_node(node.x, node.y).state = State.redry
 
-class DryCurrentStrategy(Strategy):
+            for island in self.extended_islands:
+                n = island.get_node(node.x, node.y)
+                if n is not None:
+                    n.state = State.redry
 
-    def play(self, board, position):
+        current_node = graph.get_node(*self.position)
 
-        for i in range(3):
-            self.do('DRY', 'CURRENT')
+        if current_node.state == State.flooded:
+            self.do('DRY', 'CURRENT', current_node.x, current_node.y)
+            _set_dry_state(current_node)
+            return True
 
-            return self.commit()
+        for node in current_node.neighbors:
+            if node.state == State.flooded:
+                direction = get_direction(current_node, node)
+                self.do('DRY', direction, node.x, node.y)
+                _set_dry_state(node)
+                return True
 
+        return False
 
 def find_current_island(islands, x, y):
     for island in islands:
@@ -85,44 +98,38 @@ def find_current_island(islands, x, y):
             if node.x == x and node.y == y:
                 return island
 
-def log(msg):
+    def go(self, graph, start, target):
 
-    with open('/tmp/kkrash.log', 'a') as fh:
-        fh.write(msg + '\n')
+        next_node = graph.get_next_node_on_path_to(start, target)
 
-class MoveAwayFromWaterStrategy(Strategy):
+        if next_node is not None:
+            direction = get_direction(start, next_node)
+            self.do('GO', direction, next_node.x, next_node.y)
 
-    def play(self, board, position):
 
-        graph = Graph.from_board(board)
-        dry = make_dry(graph)
 
-        islands = split_into_subgraphs(dry)
+    def find_target(self, graph):
 
-        island = find_current_island(islands, *position)
-        if island is None:
-            # No where to go to
-            for i in range(3): self.do("GO", "CURRENT")
-            return self.commit()
+        current_node = graph.get_node(*self.position)
 
-        island.calculate_distance_to_water()
-        
+        target_island = None
+        for island in self.extended_islands:
+            other_node = graph.get_node(island.nodes[0].x, island.nodes[0].y)
+            if not graph.is_reachable(current_node, other_node):
+                continue
 
-        target = island.nodes[0]
-        
-        for node in island.nodes:
-            if node.distance_to_water > target.distance_to_water:
-                target = node
-            if node.x == position[0] and node.y == position[1]:
-                current = node
-        
-        if current == target:
-            for i in range(3):
-                self.do('GO', 'CURRENT')
+            if target_island is None:
+                target_island = island
+            else:
+                if island.calculate_island_value() > target_island.calculate_island_value():
+                    target_island = island
 
-            return self.commit()
+        target = target_island.get_middle()
 
-        def mark(node, distance):
+        return graph.get_node(target.x, target.y)
+
+
+
 
             node.distance = distance
             for neighbor in node.neighbors:
