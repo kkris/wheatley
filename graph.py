@@ -165,11 +165,6 @@ class Node(object):
         self.should_recalculate_node_properties = True
         self.should_update_neighbors = True
 
-        for neighbor in self.neighbors:
-            if(neighbor.distance_to_water == -1 or
-               neighbor.distance_to_water > self.distance_to_water + 1):
-                neighbor.distance_to_water = self.distance_to_water + 1
-                neighbor._calculate_distance_to_water()
 
     def calculate_node_properties(self):
 
@@ -181,10 +176,6 @@ class Node(object):
 
         self.should_recalculate_node_properties = False
 
-            if(neighbor.distance_to_flooded == -1 or 
-               neighbor.distance_to_flooded > self.distance_to_flooded + 1):
-                neighbor.distance_to_flooded = self.distance_to_flooded + 1
-                neighbor._calculate_distance_to_flooded()
 
     def _get_is_water(self):
         return self._state in (State.flooded, State.drowned)
@@ -312,21 +303,80 @@ class Graph(object):
     def calculate_distance_to_water(self):
         """
         Marks all node with their respective distance to water
-        Graph must be fully connected in order for this to work
         """
-        node = self.nodes[0]
-        node._calculate_distance_to_water()
 
-    
-    def calculate_distance_to_flooded(self):
+        curset = set()
 
         for node in self.nodes:
-            if node.distance_to_flooded == -1:
-                node._calculate_distance_to_flooded()
+            if node.is_next_to_water:
+                node.distance_to_water = 1
+                curset.add(node)
+            elif node.is_water:
+                node.distance_to_water = 0
+
+        distance = 2
+        while curset:
+            newset = set()
+            for node in curset:
+                for neighbor in node.neighbors:
+                    if neighbor.distance_to_water == -1:
+                        neighbor.distance_to_water = distance
+                        newset.add(neighbor)
+            curset = newset
+            distance += 1
+
+
+    def calculate_distance_to_flooded(self):
+        """
+        Marks all node with their respective distance to a flooded node
+        """
+
+        curset = set()
+
+        for node in self.nodes:
+            if node.state == State.flooded:
+                node.distance_to_flooded = 0
+                curset.add(node)
+            elif any(n.state == State.flooded for n in node.neighbors):
+                node.distance_to_flooded = 0
+                curset.add(node)
+
+        distance = 1
+        while curset:
+            newset = set()
+            for node in curset:
+                for neighbor in node.neighbors:
+                    if neighbor.distance_to_flooded == -1:
+                        neighbor.distance_to_flooded = distance
+                        newset.add(neighbor)
+            curset = newset
+            distance += 1
+
 
     def calculate_distance_to_land(self):
-        node = self.nodes[0]
-        node._calculate_distance_to_land()
+        """
+        Marks all node with their respective distance to a dry node
+        """
+
+        curset = set()
+
+        for node in self.nodes:
+            if node.is_dry:
+                node.distance_to_land = 0
+            elif node.is_next_to_land:
+                node.distance_to_land = 1
+                curset.add(node)
+
+        distance = 2
+        while curset:
+            newset = set()
+            for node in curset:
+                for neighbor in node.neighbors:
+                    if neighbor.distance_to_land == -1:
+                        neighbor.distance_to_land = distance
+                        newset.add(neighbor)
+            curset = newset
+            distance += 1
 
 
     def calculate_island_value(self):
