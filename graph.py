@@ -423,6 +423,9 @@ class Graph(object):
 
 
     def calculate_island_value(self):
+        """
+        Return a value for this graph.
+        """
 
         value = 0
         for node in self.nodes:
@@ -433,7 +436,10 @@ class Graph(object):
         return value
 
     def get_middle(self):
-        
+        """
+        Return the node in the graph which has the best value
+        """
+
         self.calculate_distance_to_water()
 
         middle = self.nodes[0]
@@ -584,7 +590,7 @@ def make_walkable(graph):
 
 def make_dry(graph):
     """
-    Transform a graph into a graph which only contains nodes, that are dry
+    Transform a graph into a graph which only contains nodes that are dry
     """
 
     nodes = []
