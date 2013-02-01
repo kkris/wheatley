@@ -157,49 +157,52 @@ class DryMaxStrategy(Strategy):
 
 
 
+class MetaStrategy(Strategy):
+    """
+    Evaluates the current situation and chooses the right strategy
+    """
+
+    def evaluate_mode(self, walkable, position):
+
+        current_node = walkable.get_node(*position)
+
+        target_island = None
+        for island in self.extended_islands:
+            other_node = walkable.get_node(island.nodes[0].x, island.nodes[0].y)
+            if not walkable.is_reachable(current_node, other_node): continue
+
+            if target_island is None:
+                target_island = island
+            elif island.calculate_island_value() > target_island.calculate_island_value():
+                target_island = island
 
 
-def get_direction(current, target):
+        if target_island is None:
+            return 'DRYMAX'
+        if target_island.get_node(*position) is not None:
+            return 'FARMING'
 
-    x = target.x - current.x
-    y = target.y - current.y
-    if x == -1:
-        return 'WEST'
-    elif x == 1:
-        return 'EAST'
-    elif y == -1:
-        return 'NORTH'
-    elif y == 1:
-        return 'SOUTH'
-    else:
-        return 'CURRENT'
-
-
-import random
-
-class DryMaxStrategy(Strategy):
-
-    def dry_neighbors(self, node):
-        for neighbor in node.neighbors:
-            if neighbor.state == State.flooded and len(self.actions) < 3:
-                direction = get_direction(node, neighbor)
-                self.do('DRY', direction, neighbor.x, neighbor.y)
+        return 'MOVING'
 
 
     def get_actions(self, graph, position):
 
-        graph = Graph.from_board(board)
+        walkable = make_walkable(graph)
 
-        current_node = graph.get_node(*position)
+        self.split_graph_into_extended_islands(walkable)
 
-        while len(self.actions) < 3:
+        mode = self.evaluate_mode(walkable, position)
 
-            self.dry_neighbors(current_node)
+        if mode == 'MOVING':
+            strategy = MovingStrategy(self.debug, self.round_)
+        elif mode == 'FARMING':
+            strategy = FarmingStrategy(self.debug, self.round_)
+        elif mode == 'DRYMAX':
+            strategy = DryMaxStrategy(self.debug, self.round_)
 
-            if len(self.actions) < 3:
-                next_node = random.choice(list(current_node.neighbors))
-                direction = get_direction(current_node, next_node)
-                self.do('GO', direction)
+        strategy.extended_islands = self.extended_islands
+        return strategy.get_actions(walkable, position), mode
+
 
                 current_node = next_node
             
