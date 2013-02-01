@@ -8,6 +8,26 @@ Various strategies.
 :license: BSD, see LICENSE for more details.
 """
 
+from graph import (State, make_walkable, split_into_extended_islands,
+                   split_into_subgraphs, make_flooded)
+
+
+def get_direction(current, target):
+
+    x = target.x - current.x
+    y = target.y - current.y
+    if x == -1:
+        return 'WEST'
+    elif x == 1:
+        return 'EAST'
+    elif y == -1:
+        return 'NORTH'
+    elif y == 1:
+        return 'SOUTH'
+    else:
+        return 'CURRENT'
+
+
 
 class Strategy(object):
 
