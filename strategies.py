@@ -61,14 +61,12 @@ class Strategy(object):
         raise NotImplementedError()
 
 
-class NoOpStrategy(Strategy):
+    def split_graph_into_extended_islands(self, graph):
 
-    def play(self, board, position):
+        self.extended_islands = split_into_extended_islands(graph)
 
-        for i in range(3):
-            self.do('GO', 'CURRENT')
 
-        return self.commit()
+    def dry_one_if_possible(self, graph):
 
 
 class DryCurrentStrategy(Strategy):
