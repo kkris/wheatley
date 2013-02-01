@@ -289,6 +289,17 @@ class Graph(object):
                     self.nodes.append(node)
 
 
+    def __contains__(self, other):
+
+        for other_node in other.nodes:
+            node = self.get_node(other_node.x, other_node.y)
+            if node is None:
+                return False
+            elif node.state != other_node.state:
+                return False
+        return True
+
+
     def get_node(self, x, y):
         return self._nodes[y][x]
 
