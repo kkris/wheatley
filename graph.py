@@ -65,7 +65,8 @@ class Node(object):
         self.distance_to_land = -1
         self.value = -1
 
-        self.north = self.east = self.south = self.west = None
+        self._north = self._east = self._south = self._west = None
+        self._neighbors = []
 
 
         self._is_water = False
@@ -77,13 +78,9 @@ class Node(object):
         self.should_update_neighbors = True
 
 
-    @property
-    def neighbors(self):
-
-        if self.north is not None: yield self.north
-        if self.east is not None: yield self.east
-        if self.south is not None: yield self.south
-        if self.west is not None: yield self.west
+    @staticmethod
+    def from_node(node):
+        return Node(node.x, node.y, node.state)
 
 
     @property
@@ -117,37 +114,57 @@ class Node(object):
         self._state = state
         self.should_recalculate_node_properties = True
 
-    
-    # do not use, issa neda richtig implementiert
     @property
-    def _is_next_to_land(self):
+    def neighbors(self):
+        if self.should_update_neighbors:
+            _neighbors = (self._north, self._east, self._south, self._west)
+            self._neighbors = [n for n in _neighbors if n is not None]
+            self.should_update_neighbors = False
+        return self._neighbors
 
-        if self.is_dry: return False
+    # north
+    @property
+    def north(self):
+        return self._north
 
-        for neighbor in self.neighbors:
-            if neighbor.state in (State.dry, State.redry):
-                return True
+    @north.setter
+    def north(self, north):
+        self._north = north
+        self.should_recalculate_node_properties = True
+        self.should_update_neighbors = True
 
-        return False
+    # east
+    @property
+    def east(self):
+        return self._east
 
-    def __eq__(self, other):
-        return self.state == other.state and self.x == other.x and self.y == other.y
+    @east.setter
+    def east(self, east):
+        self._east = east
+        self.should_recalculate_node_properties = True
+        self.should_update_neighbors = True
 
-    def __ne(self, other):
-        return not self.__eq__(other)
+    # south
+    @property
+    def south(self):
+        return self._south
 
-    def __repr__(self):
-        return 'Node({}, {})'.format(self.x, self.y)
+    @south.setter
+    def south(self, south):
+        self._south = south
+        self.should_recalculate_node_properties = True
+        self.should_update_neighbors = True
 
-    def _calculate_distance_to_water(self):
-        """
-        Recursivly calculate distance to water
-        """
+    # west
+    @property
+    def west(self):
+        return self._west
 
-        if self.is_water:
-            self.distance_to_water = 0
-        elif self.is_next_to_water:
-            self.distance_to_water = 1
+    @west.setter
+    def west(self, west):
+        self._west = west
+        self.should_recalculate_node_properties = True
+        self.should_update_neighbors = True
 
         for neighbor in self.neighbors:
             if(neighbor.distance_to_water == -1 or
