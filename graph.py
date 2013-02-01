@@ -236,6 +236,8 @@ class Graph(object):
 
         self._connect_nodes()
 
+        self._update_non_null_nodes()
+
     @staticmethod
     def from_board(board):
         nodes = []
@@ -275,40 +277,69 @@ class Graph(object):
                 if y < self.rows - 1:
                     node.south = self._nodes[y+1][x]
 
+    def _update_non_null_nodes(self):
 
-    # Test if other is included in this graph
-    def __contains__(self, other):
-
-        for other_node in other.nodes:
-            node = self.get_node(other_node.x, other_node.y)
-            if node is None: return False
-            elif node.state != other_node.state: return False
-
-        return True
+        self.nodes = []
+        for row in self._nodes:
+            for node in row:
+                if node is not None:
+                    self.nodes.append(node)
 
 
-
-    @property
-    def nodes(self):
-        """
-        Returns all non-None nodes
-        """
-        return filter(None, flatten(self._nodes))
-    
     def get_node(self, x, y):
         return self._nodes[y][x]
 
     def add_node(self, node):
 
         self._nodes[node.y][node.x] = node
-        self._connect_nodes()
+
+        self.nodes.append(node)
+
+        x, y = node.x, node.y
+
+        if x > 0:
+            node.west = self._nodes[y][x-1]
+            if node.west is not None:
+                node.west.east = node
+        if x < self.columns - 1:
+            node.east = self._nodes[y][x+1]
+            if node.east is not None:
+                node.east.west = node
+        if y > 0:
+            node.north = self._nodes[y-1][x]
+            if node.north is not None:
+                node.north.south = node
+        if y < self.rows - 1:
+            node.south = self._nodes[y+1][x]
+            if node.south is not None:
+                node.south.north = node
+
+
 
     def remove_node(self, node):
 
-        self._nodes[node.y][node.x] = None
-        self._connect_nodes() # remove connections
+        if self._nodes[node.y][node.x] is None:
+            return
 
-    
+        self._nodes[node.y][node.x] = None
+
+        # set connections referring to this node to None
+        if node.east is not None:
+            node.east.west = None
+        if node.south is not None:
+            node.south.north = None
+        if node.west is not None:
+            node.west.east = None
+        if node.north is not None:
+            node.north.south = None
+
+
+        self.nodes.remove(node)
+
+        self._cached_distances.clear()
+        self._cached_paths.clear()
+
+
     def calculate_distance_to_water(self):
         """
         Marks all node with their respective distance to water
