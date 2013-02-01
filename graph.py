@@ -212,13 +212,18 @@ class Node(object):
     def __repr__(self):
         return 'Node({}, {})'.format(self.x, self.y)
 
-    def get_next_node_on_path_to(self, target):
 
-        if not target.reachable(self): return None
+    @property
+    def middle_value(self):
 
-        return sorted(self.neighbors, key=lambda n: n.distance)[0]
+        if self.is_water:
+            return 0
 
+        value = 1
+        for n in self.neighbors:
+            value += n.distance_to_water
 
+        return value
 
 
 class Graph(object):
