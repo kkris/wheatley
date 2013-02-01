@@ -74,7 +74,7 @@ def test_graph_from_board():
     """
 
     board = graph.Board.from_string(g1)
-    
+
     g = graph.Graph.from_board(board)
 
     assert g.rows == 4
@@ -113,16 +113,16 @@ def test_connections():
     for y, line in enumerate(board):
         for x, _ in enumerate(line):
             node = g.get_node(x, y)
-            if x == 0: 
+            if x == 0:
                 assert node.west is None
                 assert node.east is g.get_node(x+1, y)
-            if x == g.columns - 1: 
+            if x == g.columns - 1:
                 assert node.east is None
                 assert node.west is g.get_node(x-1, y)
-            if y == 0: 
+            if y == 0:
                 assert node.north is None
                 assert node.south is g.get_node(x, y+1)
-            if y == g.rows - 1: 
+            if y == g.rows - 1:
                 assert node.south is None
                 assert node.north is g.get_node(x, y-1)
 
@@ -137,7 +137,7 @@ def test_remove_and_add_node():
     node = g.get_node(1, 1)
 
     assert len(list(node.neighbors)) == 4
-    
+
     assert g.get_node(2, 1).west is node
     assert g.get_node(1, 2).north is node
     assert g.get_node(0, 1).east is node
@@ -231,7 +231,7 @@ def test_make_dry():
 
     dry = graph.make_dry(g)
 
-    # Test that first making it walkable and then dry is the same as making it dry right away    
+    # Test that first making it walkable and then dry is the same as making it dry right away
     walkable = graph.make_walkable(g)
     dry2 = graph.make_dry(walkable)
     for y in range(dry.rows):
@@ -246,7 +246,7 @@ def test_make_dry():
     assert len(dry.nodes) == 3*4
 
     assert dry.get_node(1, 1).west is None
-    
+
 
 
 def test_subgraphs():
@@ -307,7 +307,7 @@ def test_distance_to_flooded():
 
     assert g.get_node(2, 2).distance_to_flooded == 1
 
-    
+
 
 
     board = graph.Board.from_string(g_sub)
@@ -376,7 +376,7 @@ def test_island_value():
     value = island.calculate_island_value()
     assert value == 15*2 + 3 + 7*4
 
-    
+
     board = graph.Board.from_string(g2)
     g = graph.Graph.from_board(board)
 
@@ -386,12 +386,12 @@ def test_island_value():
     value = island.calculate_island_value()
     assert value == 14*2 + 2*3 + 10*4
 
-    
+
     board = graph.Board.from_string(g_sub)
     g = graph.Graph.from_board(board)
 
     walkable = graph.make_walkable(g)
-    
+
     island1, island2 = graph.split_into_subgraphs(walkable)
 
 
@@ -433,18 +433,19 @@ def test_split_extended_islands():
 
     extended_islands = graph.split_into_extended_islands(walkable)
 
+
     assert len(extended_islands) == 3
     for island in extended_islands:
-        if island.get_node(0, 0) is not None: 
+        if island.get_node(0, 0) is not None:
             assert len(island.nodes) == 3
-        elif island.get_node(4, 0) is not None: 
+        elif island.get_node(4, 0) is not None:
             island2 = island
             assert len(island.nodes) == 3
-        elif island.get_node(4, 2) is not None: 
+        elif island.get_node(4, 2) is not None:
             island3 = island
             assert len(island.nodes) == 7
 
-    
+
     assert island2.get_node(4, 1) is not None
     assert island3.get_node(4, 1) is not None
 

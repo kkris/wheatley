@@ -15,6 +15,7 @@ class State(object):
     drowned = '.'
     redry = '~'
 
+
 class Field(object):
 
     def __init__(self, x=0, y=0, state=State.dry):
@@ -53,6 +54,7 @@ class Board(list):
 class Node(object):
 
     def __init__(self, x=0, y=0, state=State.dry):
+
         self.x = x
         self.y = y
         self.state = state
@@ -276,7 +278,6 @@ class Graph(object):
         return filter(None, flatten(self._nodes))
     
     def get_node(self, x, y):
-
         return self._nodes[y][x]
 
     def add_node(self, node):
@@ -320,7 +321,6 @@ class Graph(object):
 
         return value
 
-    
     def get_middle(self):
         
         self.calculate_distance_to_water()
@@ -335,7 +335,6 @@ class Graph(object):
 
 
 
-        
 def make_walkable(graph):
     """
     Transform a graph to only contain nodes, that the bot can enter.
@@ -385,7 +384,7 @@ def algorithm(node, island, islands):
             for ext_island in islands:
                 if node in ext_island:
                     ext_island.remove(node)
-        
+
         island.add(node)
 
         node.distance_to_land = 1
@@ -459,7 +458,7 @@ def split_into_subgraphs(graph):
         
         visited = set()
         _find_connected(node, visited)
-        
+
         for node in visited:
             nodes.remove(node)
 
@@ -471,4 +470,5 @@ def split_into_subgraphs(graph):
         subgraphs.append(Graph(n))
 
     return subgraphs
-        
+
+
