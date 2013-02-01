@@ -204,14 +204,36 @@ class MetaStrategy(Strategy):
         return strategy.get_actions(walkable, position), mode
 
 
-                current_node = next_node
-            
+class MovingStrategy(Strategy):
+    """
+    This Strategy moves the bot towards more safe places on the island while
+    drying fields on its way there.
+    """
+
+    def get_actions(self, graph, position):
+
+        self.position = position
+
+        moved = False
+        while len(self.actions) < 2 or (moved and len(self.actions) < 3):
+            if not self.dry_one_if_possible(graph):
+                moved = True
+                current_node = graph.get_node(*self.position)
+                target = self.find_target(graph)
+                self.go(graph, current_node, target)
+
+        if len(self.actions) < 3:
+            current_node = graph.get_node(*self.position)
+            target = self.find_target(graph)
+
+            if target == current_node: # we already are at our destination, go towards water
+                graph.calculate_distance_to_flooded()
+                target = min(current_node.neighbors, key=lambda n: n.distance_to_flooded)
+                self.go(graph, current_node, target)
+            else:
+                self.go(graph, current_node, target)
 
         return self.commit()
-
-
-
-class HyperStrategy(Strategy):
 
 
     def evaluate_mode(self, board, position):
