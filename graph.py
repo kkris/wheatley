@@ -203,10 +203,14 @@ class Node(object):
 
         return False
 
-        self.mark_distance(0)
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
 
-        return other.distance != -1
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
+    def __repr__(self):
+        return 'Node({}, {})'.format(self.x, self.y)
 
     def get_next_node_on_path_to(self, target):
 
