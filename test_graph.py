@@ -355,15 +355,15 @@ def test_middle_value():
         if node.is_water:
             assert node.middle_value == 0
 
-    assert g.get_node(1, 1).middle_value == 2
-    assert g.get_node(2, 1).middle_value == 4
-    assert g.get_node(3, 1).middle_value == 4
-    assert g.get_node(4, 1).middle_value == 2
+    assert g.get_node(1, 1).middle_value == 3
+    assert g.get_node(2, 1).middle_value == 5
+    assert g.get_node(3, 1).middle_value == 5
+    assert g.get_node(4, 1).middle_value == 3
 
-    assert g.get_node(1, 2).middle_value == 4
-    assert g.get_node(2, 2).middle_value == 5
-    assert g.get_node(3, 2).middle_value == 5
-    assert g.get_node(4, 2).middle_value == 4
+    assert g.get_node(1, 2).middle_value == 5
+    assert g.get_node(2, 2).middle_value == 6
+    assert g.get_node(3, 2).middle_value == 6
+    assert g.get_node(4, 2).middle_value == 5
 
 def test_island_value():
 
@@ -530,8 +530,9 @@ def test_reachable():
     upper_right = walkable.get_node(4, 0)
     lower_right = walkable.get_node(4, 2)
 
-    assert not lower_right.reachable(upper_left)
-    assert upper_right.reachable(lower_right)
+    assert not walkable.is_reachable(lower_right, upper_left)
+    assert walkable.is_reachable(upper_right, lower_right)
+
 
 
 
@@ -545,8 +546,7 @@ def test_reachable_big():
     start = walkable.get_node(4, 1)
     target = walkable.get_node(7, 14)
 
-    assert start.reachable(target)
-
+    assert walkable.is_reachable(start, target)
 
 
 def test_get_next_node_on_path_to():
@@ -561,11 +561,21 @@ def test_get_next_node_on_path_to():
     start = island1.get_node(0, 0)
     target = island2.get_node(4, 2)
 
-    assert start.get_next_node_on_path_to(target) is None
+    assert island1.get_next_node_on_path_to(start, target) is None
 
     start = island2.get_node(4, 0)
 
-    assert start.get_next_node_on_path_to(target) is island2.get_node(4, 1)
+    assert island2.get_next_node_on_path_to(start, target) is island2.get_node(4, 1)
+
+
+    # test when target is next to start
+
+    start = walkable.get_node(4, 2)
+    target = walkable.get_node(3, 2)
+
+    next_node = walkable.get_next_node_on_path_to(start, target)
+    assert next_node is target
+
 
 
 def test_get_next_node_on_path_to_big():
@@ -578,7 +588,40 @@ def test_get_next_node_on_path_to_big():
     start = walkable.get_node(4, 1)
     target = walkable.get_node(7, 14)
 
-    assert start.get_next_node_on_path_to(target) is walkable.get_node(5, 1)
+    expected = (walkable.get_node(4, 2), walkable.get_node(5, 1))
+    assert walkable.get_next_node_on_path_to(start, target) in expected
 
 
+
+
+def test_get_distance_between():
+
+    board = graph.Board.from_string(g_sub)
+    g = graph.make_walkable(graph.Graph.from_board(board))
+
+    start = g.get_node(4, 0)
+    target = g.get_node(4, 1)
+    target2 = g.get_node(3, 2)
+    unreachable = g.get_node(0, 0)
+
+    assert g.get_distance_between(start, start) == 0
+    assert g.get_distance_between(start, target) == 1
+    assert g.get_distance_between(start, target2) == 3
+    assert g.get_distance_between(start, unreachable) == -1
+
+
+
+def test_get_next_node_on_path_to_3():
+
+    board = graph.Board.from_string(g_sub)
+    g = graph.make_walkable(graph.Graph.from_board(board))
+
+    start = g.get_node(4, 0)
+    target = g.get_node(4, 1)
+    target2 = g.get_node(3, 0)
+    unreachable = g.get_node(0, 0)
+
+    assert g.get_next_node_on_path_to(start, target) is target
+    assert g.get_next_node_on_path_to(start, target2) is target2
+    assert g.get_next_node_on_path_to(start, unreachable) is None
 
