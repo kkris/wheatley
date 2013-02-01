@@ -606,6 +606,24 @@ def make_dry(graph):
     return Graph(nodes)
 
 
+def make_flooded(graph):
+
+    nodes = []
+
+    for row in graph._nodes:
+        nodes.append([])
+        for node in row:
+            if node is None or node.state != State.flooded:
+                nodes[-1].append(None)
+            else:
+                nodes[-1].append(Node.from_node(node))
+
+    return Graph(nodes)
+
+
+
+
+def update_extended_islands(node, island, islands):
 
 def algorithm(node, island, islands):
     
