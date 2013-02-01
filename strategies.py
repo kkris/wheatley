@@ -92,11 +92,6 @@ class Strategy(object):
 
         return False
 
-def find_current_island(islands, x, y):
-    for island in islands:
-        for node in island.nodes:
-            if node.x == x and node.y == y:
-                return island
 
     def go(self, graph, start, target):
 
