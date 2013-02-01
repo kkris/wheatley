@@ -156,13 +156,8 @@ class DryMaxStrategy(Strategy):
         return self.commit()
 
 
-def num_flooded_neighbors(node):
 
-    num = 0
-    for neighbor in node.neighbors:
-        if neighbor.state == State.flooded: num += 1
 
-    return num
 
 def get_direction(current, target):
 
