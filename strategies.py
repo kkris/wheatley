@@ -31,12 +31,24 @@ def get_direction(current, target):
 
 class Strategy(object):
 
-    def __init__(self):
+    def __init__(self, debug=False, round_=0):
 
         self.actions = []
-    
+        self.position = (0, 0)
+        self.floodlevel = 0
+
+        self.extended_islands = None
+
+        self.debug = debug
+        self.round_ = round_
+
+
     def do(self, cmd, direction, x=None, y=None):
         self.actions.append((cmd + ' ' + direction, x, y))
+
+        if cmd == 'GO':
+            self.position = (x, y)
+
 
     def commit(self):
 
