@@ -625,11 +625,9 @@ def make_flooded(graph):
 
 def update_extended_islands(node, island, islands):
 
-def algorithm(node, island, islands):
-    
     dry_states = (State.dry, State.redry)
 
-    if (node.state in dry_states or 
+    if (node.state in dry_states or
         any(n.state in dry_states and n in island for n in node.neighbors)):
 
         if node.distance_to_land > 1:
@@ -644,11 +642,11 @@ def algorithm(node, island, islands):
     for neighbor in node.neighbors:
         if neighbor.state == State.flooded:
             if node.state in dry_states:
-                algorithm(neighbor, island, islands)
+                update_extended_islands(neighbor, island, islands)
             elif neighbor.distance_to_land == node.distance_to_land + 1:
                 if neighbor not in island:
                     island.add(neighbor)
-            elif (neighbor.distance_to_land == -1 or 
+            elif (neighbor.distance_to_land == -1 or
                   neighbor.distance_to_land > node.distance_to_land + 1):
                 neighbor.distance_to_land = node.distance_to_land + 1
 
@@ -656,7 +654,7 @@ def algorithm(node, island, islands):
                     if neighbor in ext_island:
                         ext_island.remove(neighbor)
                 island.add(neighbor)
-                algorithm(neighbor, island, islands)
+                update_extended_islands(neighbor, island, islands)
 
 
 
@@ -679,12 +677,12 @@ def split_into_extended_islands(graph):
 
     for extended_island in extended_islands:
         for node in list(extended_island):
-            algorithm(node, extended_island, extended_islands)
+            update_extended_islands(node, extended_island, extended_islands)
 
 
     islands = []
     for ext_island in extended_islands:
-        nodes = [[None for _ in range(graph.columns)] for _ in range(graph.rows)]
+        nodes = [[None for _ in xrange(graph.columns)] for _ in xrange(graph.rows)]
         for node in ext_island:
             nodes[node.y][node.x] = node
 
@@ -704,18 +702,19 @@ def _find_connected(node, visited):
 def split_into_subgraphs(graph):
 
     subgraphs = []
-    nodes = list(graph.nodes)
+    nodes = set(graph.nodes)
     while nodes:
-        node = nodes[0]
-        
+        node = nodes.pop()
+
         visited = set()
         _find_connected(node, visited)
 
         for node in visited:
-            nodes.remove(node)
+            if node in nodes:
+                nodes.remove(node)
 
         # build 2-dimensional list from visited nodes
-        n = [[None for i in range(graph.columns)] for j in range(graph.rows)]
+        n = [[None for i in xrange(graph.columns)] for j in xrange(graph.rows)]
         for node in visited:
             n[node.y][node.x] = node
 
