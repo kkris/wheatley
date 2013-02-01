@@ -126,20 +126,32 @@ class Strategy(object):
 
 
 
-            node.distance = distance
-            for neighbor in node.neighbors:
-                if not hasattr(neighbor, 'distance') or neighbor.distance > distance + 1:
-                    mark(neighbor, distance + 1)
-  
-        mark(target, 0)
+class DryMaxStrategy(Strategy):
+    """
+    Dries as many fields as possible
+    """
 
-        for i in range(3):
-            next_node = sorted(current.neighbors, key=lambda n: n.distance)[0]
+    def get_actions(self, graph, position):
 
-            direction = get_direction(current, next_node)
+        self.position = position
+
+        current_node = graph.get_node(*self.position)
+
+        while len(self.actions) < 3 and self.dry_one_if_possible(graph):
+            pass
+
+        while len(self.actions) < 3:
+
+            if len(current_node.neighbors) == 0:
+                self.do('GO', 'CURRENT')
+                continue
+
+            next_node = min(current_node.neighbors, key=lambda n: n.distance_to_flooded)
+            direction = get_direction(current_node, next_node)
             self.do('GO', direction)
 
-            current = next_node
+            current_node = next_node
+
 
         return self.commit()
 
